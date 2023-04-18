@@ -1,0 +1,56 @@
+{
+  "name": "@march/core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "license": "ISC",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -Rf dist && sh scripts/delete-conflict-dependencies.sh && tsc --sourceMap false --declaration false",
+    "clean": "rimraf ./dist"
+  },
+  "keywords": [],
+  "author": "",
+  "dependencies": {
+    "@march/core": "link:",
+    "@nestjs-modules/ioredis": "^1.0.1",
+    "@nestjs/axios": "^0.1.0",
+    "@nestjs/common": "^9.0.0",
+    "@nestjs/config": "^2.3.1",
+    "@nestjs/core": "^9.0.0",
+    "@nestjs/graphql": "7.4.6",
+    "@nestjs/jwt": "^9.0.0",
+    "@nestjs/microservices": "^9.2.1",
+    "@nestjs/passport": "^9.0.0",
+    "@nestjs/platform-express": "^9.0.0",
+    "axios": "^1.3.5",
+    "graphql": "^16.6.0",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-typescript": "^7.16.5",
+    "eslint": "8.9.0",
+    "jest": "27.5.1",
+    "prettier": "2.3.2",
+    "ts-jest": "27.1.3",
+    "ts-loader": "9.2.3",
+    "ts-node": "10.7.0",
+    "tsconfig-paths": "3.9.0",
+    "typescript": "4.6.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "graphql": "15.5.1"
+    }
+  },
+  "optionalDependencies": {
+    "class-transformer": "0.4.0",
+    "class-validator": "0.13.1"
+  }
+}
