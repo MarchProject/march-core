@@ -1,10 +1,4 @@
-import {
-  ExecutionContext,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-} from '@nestjs/common'
+import { ExecutionContext, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql'
 import { AuthGuard } from '@nestjs/passport'
 import * as jwt from 'jsonwebtoken'
@@ -32,7 +26,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
   private readonly loggers = new Logger(UserAuthGuard.name)
 
   constructor(
-    private readonly role?: string, // private readonly options?: UamAuthGuardOptions,
+    private readonly role?: string // private readonly options?: UamAuthGuardOptions,
   ) {
     super()
   }
@@ -40,8 +34,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
   getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context)
     const { request, connection } = ctx.getContext()
-    const requestData =
-      connection && connection.context ? connection.context : request
+    const requestData = connection && connection.context ? connection.context : request
     return requestData
     // return ctx.getContext().request
   }
@@ -58,7 +51,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
         endpointType,
         endpoint,
         className,
-        method: fieldName,
+        method: fieldName
       }
       return endpointContext
     }
@@ -95,10 +88,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
         }
       }
 
-      const checkDeviceId = await this.validateDeviceId(
-        jwtVerifyResult.deviceId,
-        accessToken,
-      )
+      const checkDeviceId = await this.validateDeviceId(jwtVerifyResult.deviceId, accessToken)
       console.log(checkDeviceId)
       if (!checkDeviceId) {
         throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
@@ -118,14 +108,14 @@ export class UserAuthGuard extends AuthGuard('jwt') {
     }
     const url =
       process.env.NODE_ENV === 'development'
-        ? 'http://0.0.0.0:3001/auth/diviceId'
-        : ''
+        ? 'http://192.168.1.103/auth/diviceId'
+        : 'http://192.168.1.103/api/auth/auth/diviceId'
     try {
       const response: AxiosResponse = await axios.get(url, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
+          Authorization: `Bearer ${accessToken}`
+        }
       })
       if (deviceIdToken === response.data) {
         return true
