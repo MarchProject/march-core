@@ -93,7 +93,8 @@ export class UserAuthGuard extends AuthGuard('jwt') {
       if (!checkDeviceId) {
         throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
       } else {
-        console.log('first')
+        request.userId = jwtVerifyResult.userId
+        request.shopsId = jwtVerifyResult.shopsId
         return true
       }
     } catch (error) {
@@ -106,10 +107,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
     if (!deviceIdToken) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
     }
-    const url =
-      process.env.NODE_ENV === 'development'
-        ? 'http://192.168.1.103/auth/diviceId'
-        : 'http://192.168.1.103/api/auth/auth/diviceId'
+    const url = process.env.NODE_ENV === 'development' ? 'http://0.0.0.0:3001/auth/diviceId' : ''
     try {
       const response: AxiosResponse = await axios.get(url, {
         headers: {
