@@ -82,9 +82,13 @@ export class UserAuthGuard extends AuthGuard('jwt') {
         if (this.role === jwtVerifyResult?.role) {
           this.loggers.debug('Success', logctx)
           // return true
-        } else {
+        } 
+        else if(jwtVerifyResult?.role === 'SUPERADMIN'){
+          //returntrue
+        }
+        else {
           this.loggers.debug('role!', logctx)
-          throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+          throw new HttpException('UnauthorizedRole', HttpStatus.UNAUTHORIZED)
         }
       }
 
@@ -95,12 +99,13 @@ export class UserAuthGuard extends AuthGuard('jwt') {
       } else {
         request.userId = jwtVerifyResult.userId
         request.shopsId = jwtVerifyResult.shopsId
+        request.userName = jwtVerifyResult.userName
         return true
       }
     } catch (error) {
       this.loggers.debug('checkDeviceId!', logctx)
       this.loggers.error({ error }, logctx)
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+      throw new HttpException(error.message, error.status)
     }
   }
   async validateDeviceId(deviceIdToken: string, accessToken: string) {
