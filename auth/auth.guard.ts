@@ -86,14 +86,13 @@ export class UserAuthGuard extends AuthGuard('jwt') {
           //returntrue
         } else {
           this.loggers.debug('role!', logctx)
-          throw new HttpException('UnauthorizedRole', HttpStatus.UNAUTHORIZED)
+          throw new HttpException('Unauthorized Role', HttpStatus.UNAUTHORIZED)
         }
       }
 
       const checkDeviceId = await this.validateDeviceId(jwtVerifyResult.deviceId, accessToken)
-      console.log(checkDeviceId)
       if (!checkDeviceId) {
-        throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+        throw new HttpException('Unauthorized Device', HttpStatus.UNAUTHORIZED)
       } else {
         request.userId = jwtVerifyResult.userId
         request.shopsId = jwtVerifyResult.shopsId
