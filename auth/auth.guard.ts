@@ -61,12 +61,14 @@ export class UserAuthGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext) {
     const logctx = logContext(UserAuthGuard, this.canActivate)
     const graphQlEndpoint = this.getGraphQLEndpointContext(context)
-    // this.loggers.debug({ graphQlEndpoint: graphQlEndpoint.endpoint }, logctx)
+    this.loggers.debug({ graphQlEndpoint: graphQlEndpoint.endpoint }, logctx)
 
     const request = this.getRequest(context)
 
     const authorizationHeader = getRequestHeader(request, 'Authorization')
-    console.log({ authorizationHeader })
+
+    this.loggers.debug({ authorizationHeader }, logctx)
+
     if (!authorizationHeader) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
     }
@@ -105,6 +107,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
       throw new HttpException('Unauthorized', error.status)
     }
   }
+
   async validateDeviceId(deviceIdToken: string, accessToken: string) {
     if (!deviceIdToken) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)

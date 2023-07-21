@@ -1,4 +1,5 @@
 export * from './auth.guard'
+export * from './grpc.guard'
 export * from './uam'
 export * from './jwt'
 export * from './common'
