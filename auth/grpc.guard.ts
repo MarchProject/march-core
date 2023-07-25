@@ -15,18 +15,17 @@ export class GrpcAuthGuard extends AuthGuard('jwt') implements CanActivate {
       }
       return request?.[key] || request?.headers?.[key]
     }
-    const isPublic = this.reflector.get<boolean>(
-      'isPublic',
-      context.getHandler(),
-    )
-    if (isPublic) {
-      return true
-    }
+    // const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler())
+    // console.log({ isPublic })
+    // if (isPublic) {
+    //   return true
+    // }
     const ctx = context.switchToRpc()
+    console.log({ ctx })
     const request = ctx.getContext()
-
+    console.log({ request })
     const authorizationHeader = getRequestHeader(request, 'Authorization')
     console.log({ authorizationHeader })
-    return request
+    return true
   }
 }

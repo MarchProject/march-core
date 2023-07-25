@@ -5,7 +5,7 @@ import { ClientProviderOptions, Transport } from '@nestjs/microservices'
 const config = ConfigService.load()
 
 export const inventoryGrpcPackageName = 'inventory'
-export const inventoryProtoPath = '../../../proto/inventory/index.proto'
+export const inventoryProtoPath = '../../proto/inventory/index.proto'
 
 export const inventoryGrpcClientName = 'INVENTORY_PACKAGE'
 export const inventoryGrpcClientProvider: ClientProviderOptions = {
