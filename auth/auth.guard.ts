@@ -112,7 +112,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
     if (!deviceIdToken) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
     }
-    const url = process.env.NODE_ENV === 'development' ? 'http://0.0.0.0:3001/auth/diviceId' : ''
+    const url = process.env.UAM_URL
     try {
       const response: AxiosResponse = await axios.get(url, {
         headers: {
