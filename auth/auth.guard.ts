@@ -4,8 +4,9 @@ import { AuthGuard } from '@nestjs/passport'
 import * as jwt from 'jsonwebtoken'
 import { logContext } from './common/helpers/log'
 import { jwtToken } from './jwt'
-import { uamAuthRole } from './uam'
+import {  uamAuthRole } from './uam'
 import axios, { AxiosResponse } from 'axios'
+import { get } from 'lodash'
 
 export interface GraphQlEndpoint {
   endpointType?: string
@@ -60,8 +61,8 @@ export class UserAuthGuard extends AuthGuard('jwt') {
 
   async canActivate(context: ExecutionContext) {
     const logctx = logContext(UserAuthGuard, this.canActivate)
-    const graphQlEndpoint = this.getGraphQLEndpointContext(context)
-    this.loggers.debug({ graphQlEndpoint: graphQlEndpoint.endpoint }, logctx)
+    const graphQlEndpoint: GraphQlEndpoint = this.getGraphQLEndpointContext(context)
+    this.loggers.debug({ graphQlEndpoint: graphQlEndpoint }, logctx)
 
     const request = this.getRequest(context)
 
@@ -78,56 +79,123 @@ export class UserAuthGuard extends AuthGuard('jwt') {
     try {
       const jwtVerifyResult: any = jwt.verify(accessToken, jwtToken.secret)
       this.loggers.debug({ jwtVerifyResult }, logctx)
+
       if (this.role === uamAuthRole.Any && jwtVerifyResult?.role) {
-        // return true
       } else {
-        if (this.role === jwtVerifyResult?.role) {
-          this.loggers.debug('Success', logctx)
-          // return true
-        } else if (jwtVerifyResult?.role === 'SUPERADMIN') {
-          //returntrue
+        if (jwtVerifyResult?.role === 'SUPERADMIN') {
         } else {
           this.loggers.debug('role!', logctx)
           throw new HttpException('Unauthorized Role', HttpStatus.UNAUTHORIZED)
         }
       }
-
-      const checkDeviceId = await this.validateDeviceId(jwtVerifyResult.deviceId, accessToken)
+      const checkDeviceId = await this.validateDeviceId(
+        jwtVerifyResult.deviceId,
+        accessToken,
+        graphQlEndpoint,
+        jwtVerifyResult?.info?.tasks
+      )
       if (!checkDeviceId) {
         throw new HttpException('Unauthorized Device', HttpStatus.UNAUTHORIZED)
       } else {
+        this.loggers.debug(
+          'userInfoLogs',
+          {
+            userId: jwtVerifyResult.userId,
+            shopId: jwtVerifyResult.shopsId,
+            userName: jwtVerifyResult.userName,
+            tasks: jwtVerifyResult.info.tasks
+          },
+          logctx
+        )
         request.userId = jwtVerifyResult.userId
         request.shopsId = jwtVerifyResult.shopsId
         request.userName = jwtVerifyResult.userName
+        request.taskServices = jwtVerifyResult.info.tasks
         return true
       }
     } catch (error) {
       this.loggers.debug('checkDeviceId!', logctx)
       this.loggers.error({ error }, logctx)
-      throw new HttpException('Unauthorized', error.status)
+      throw new HttpException(get(error, 'message', 'Internal Error'), get(error, 'status', 500))
     }
   }
 
-  async validateDeviceId(deviceIdToken: string, accessToken: string) {
+  async validateDeviceId(
+    deviceIdToken: string,
+    accessToken: string,
+    graphQlEndpoint: GraphQlEndpoint,
+    userTask: string[]
+  ) {
+    const logctx = logContext(UserAuthGuard, this.validateDeviceId)
     if (!deviceIdToken) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
     }
     const url = process.env.UAM_URL
+    this.loggers.debug({ url, userTask }, logctx)
     try {
-      const response: AxiosResponse = await axios.get(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
+      const response: AxiosResponse = await axios.post(
+        url,
+        { data: graphQlEndpoint },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`
+          },
+          responseType: 'json'
         }
-      })
-      if (deviceIdToken === response.data) {
-        return true
+      )
+      this.loggers.debug({ response: response.data }, logctx)
+      this.loggers.debug({ len: response?.data?.scopes.length }, logctx)
+      if (deviceIdToken === response?.data?.deviceId) {
+        if (response?.data?.scopes.length > 0) {
+          return this.verifyUserGroups(response?.data?.scopes, userTask)
+        } else {
+          return true
+        }
       } else {
         return false
       }
     } catch (error) {
-      console.log({ error }, 'here')
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+      console.log({ error }, 'error')
+      throw new HttpException(get(error, 'message', 'Internal Error'), get(error, 'status', 500))
     }
+  }
+
+  async checkTaskId(tasks: string[], userTasks: string[]) {
+    const logctx = logContext(UserAuthGuard, this.checkTaskId)
+    this.loggers.debug({ tasks: tasks.length, userTasks }, logctx)
+    if (tasks.length > 1) {
+      const checkSomeTask = tasks.some(e => {
+        return userTasks.includes(e)
+      })
+      this.loggers.debug({ checkSomeTask }, logctx)
+      if (!checkSomeTask) {
+        throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+      }
+    } else {
+      const checkEveryTask = tasks.every(e => {
+        return userTasks.includes(e)
+      })
+      this.loggers.debug({ checkEveryTask }, logctx)
+      if (!checkEveryTask) {
+        throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+      }
+    }
+  }
+
+  verifyUserGroups(scopes: string[], userGroups: string[]) {
+    const logctx = logContext(UserAuthGuard, this.verifyUserGroups)
+    this.loggers.debug({ scopes, userGroups }, logctx)
+
+    const group = scopes.find(group => {
+      return userGroups.indexOf(group) > -1
+    })
+    this.loggers.debug({ group }, logctx)
+
+    if (!group) {
+      throw new HttpException('Permission', HttpStatus.UNAUTHORIZED)
+    }
+
+    return true
   }
 }

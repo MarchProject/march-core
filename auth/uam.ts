@@ -1,6 +1,6 @@
 export const uamAuthRole = {
-     Admin : 'ADMIN',
-     SuperAdmin: 'SUPERADMIN',
-     Any: 'ANY',
-     Free:'FREE'
+  Admin: 'ADMIN',
+  SuperAdmin: 'SUPERADMIN',
+  Any: 'ANY',
+  Free: 'FREE'
 }
