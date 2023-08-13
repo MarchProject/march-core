@@ -4,7 +4,7 @@ import { AuthGuard } from '@nestjs/passport'
 import * as jwt from 'jsonwebtoken'
 import { logContext } from './common/helpers/log'
 import { jwtToken } from './jwt'
-import {  uamAuthRole } from './uam'
+import { uamAuthRole } from './uam'
 import axios, { AxiosResponse } from 'axios'
 import { get } from 'lodash'
 
@@ -116,6 +116,9 @@ export class UserAuthGuard extends AuthGuard('jwt') {
     } catch (error) {
       this.loggers.debug('checkDeviceId!', logctx)
       this.loggers.error({ error }, logctx)
+      if (error?.message === 'jwt expired') {
+        throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED)
+      }
       throw new HttpException(get(error, 'message', 'Internal Error'), get(error, 'status', 500))
     }
   }

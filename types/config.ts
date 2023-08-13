@@ -17,5 +17,6 @@ export namespace config {
   export type Config = {
     auth?: ServiceConfig
     inventory?: ServiceConfig
+    user?: ServiceConfig
   }
 }
