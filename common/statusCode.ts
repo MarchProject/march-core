@@ -10,12 +10,14 @@ export const statusCode = {
   success: <T>(data: T): ApiResponse<T> => {
     return { data, status: { code: 1000, message: 'success' } }
   },
-  forbidden: {
-    //wrong user
-    data: null,
-    status: {
-      code: 9001,
-      message: 'FORBIDDEN'
+  forbidden: (message?: string) => {
+    return {
+      //wrong user
+      data: null,
+      status: {
+        code: 9001,
+        message: `Forbidden: ${message}`
+      }
     }
   },
   duplicated: {
@@ -25,11 +27,13 @@ export const statusCode = {
       message: 'Duplicated Name'
     }
   },
-  badRequest: {
-    data: null,
-    status: {
-      code: 9003,
-      message: 'Bad Request'
+  badRequest: (message?: string) => {
+    return {
+      data: null,
+      status: {
+        code: 9003,
+        message: `Bad Request: ${message}`
+      }
     }
   },
   onUse: {
@@ -40,11 +44,13 @@ export const statusCode = {
       message: 'On Use'
     }
   },
-  internalError: {
-    data: null,
-    status: {
-      code: 9999,
-      message: 'Internal Error'
+  internalError: (message: string) => {
+    return {
+      data: null,
+      status: {
+        code: 9999,
+        message: `Internal Error: ${message}`
+      }
     }
   }
 }
