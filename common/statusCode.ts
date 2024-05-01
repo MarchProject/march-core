@@ -36,12 +36,14 @@ export const statusCode = {
       }
     }
   },
-  onUse: {
+  onUse: (message: string) => {
     //badhavetype on use
-    data: null,
-    status: {
-      code: 9004,
-      message: 'On Use'
+    return {
+      data: null,
+      status: {
+        code: 9004,
+        message: message
+      }
     }
   },
   internalError: (message: string) => {
