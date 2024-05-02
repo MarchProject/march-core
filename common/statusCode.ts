@@ -7,8 +7,8 @@ interface ApiResponse<T> {
 }
 
 export const statusCode = {
-  success: <T>(data: T): ApiResponse<T> => {
-    return { data, status: { code: 1000, message: 'success' } }
+  success: <T>(data: T, meesage: string = 'success'): ApiResponse<T> => {
+    return { data, status: { code: 1000, message: meesage } }
   },
   forbidden: (message?: string) => {
     return {
@@ -20,11 +20,13 @@ export const statusCode = {
       }
     }
   },
-  duplicated: {
-    data: null,
-    status: {
-      code: 9002,
-      message: 'Duplicated Name'
+  duplicated: (message: string) => {
+    return {
+      data: null,
+      status: {
+        code: 9002,
+        message
+      }
     }
   },
   badRequest: (message?: string) => {
