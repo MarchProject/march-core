@@ -4,7 +4,7 @@ import { AuthGuard } from '@nestjs/passport'
 import * as jwt from 'jsonwebtoken'
 import { logContext } from './common/helpers/log'
 import { jwtToken } from './jwt'
-import { uamAuthRole } from './uam'
+import { uam, uamAuthRole } from './uam'
 import axios, { AxiosResponse } from 'axios'
 import { get } from 'lodash'
 
@@ -27,7 +27,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
   private readonly loggers = new Logger(UserAuthGuard.name)
 
   constructor(
-    private readonly role?: string // private readonly options?: UamAuthGuardOptions,
+    private readonly role?: string | uam.Action[] | string // private readonly options?: UamAuthGuardOptions,
   ) {
     super()
   }
@@ -78,21 +78,28 @@ export class UserAuthGuard extends AuthGuard('jwt') {
 
     try {
       const jwtVerifyResult: any = jwt.verify(accessToken, jwtToken.secret)
+
       this.loggers.debug({ jwtVerifyResult }, logctx)
 
-      if (this.role === uamAuthRole.Any && jwtVerifyResult?.role) {
+      const scopes = typeof this.role === 'string' ? ([this.role] as uam.Action[]) : (this.role as uam.Action[])
+
+      if (scopes && jwtVerifyResult?.role) {
+        //
       } else {
         if (jwtVerifyResult?.role === 'SUPERADMIN') {
+          //
         } else {
           this.loggers.debug('role!', logctx)
           throw new HttpException('Unauthorized Role', HttpStatus.UNAUTHORIZED)
         }
       }
+
       const checkDeviceId = await this.validateDeviceId(
         jwtVerifyResult.deviceId,
         accessToken,
         graphQlEndpoint,
-        jwtVerifyResult?.info?.tasks
+        jwtVerifyResult?.info?.tasks,
+        scopes
       )
       if (!checkDeviceId) {
         throw new HttpException('Unauthorized Device', HttpStatus.UNAUTHORIZED)
@@ -127,7 +134,8 @@ export class UserAuthGuard extends AuthGuard('jwt') {
     deviceIdToken: string,
     accessToken: string,
     graphQlEndpoint: GraphQlEndpoint,
-    userTask: string[]
+    userTask: string[],
+    scopes: uam.Action[]
   ) {
     const logctx = logContext(UserAuthGuard, this.validateDeviceId)
     if (!deviceIdToken) {
@@ -148,12 +156,16 @@ export class UserAuthGuard extends AuthGuard('jwt') {
         }
       )
       this.loggers.debug({ response: response.data }, logctx)
-      this.loggers.debug({ len: response?.data?.scopes.length }, logctx)
+      // this.loggers.debug({ len: response?.data?.scopes.length }, logctx)
+      const isBackOfficeUser = this.isBackOfficeUser(userTask)
+
+      this.loggers.debug({ isBackOfficeUser }, logctx)
+
       if (deviceIdToken === response?.data?.deviceId) {
-        if (response?.data?.scopes.length > 0) {
-          return this.verifyUserGroups(response?.data?.scopes, userTask)
+        if (isBackOfficeUser) {
+          return this.verifyUserGroups(scopes, userTask)
         } else {
-          return true
+          return false
         }
       } else {
         return false
@@ -186,19 +198,29 @@ export class UserAuthGuard extends AuthGuard('jwt') {
     }
   }
 
-  verifyUserGroups(scopes: string[], userGroups: string[]) {
+  verifyUserGroups(scopes: uam.Action[], userGroups: string[]) {
     const logctx = logContext(UserAuthGuard, this.verifyUserGroups)
     this.loggers.debug({ scopes, userGroups }, logctx)
 
-    const group = scopes.find(group => {
+    const group = scopes.find((group: uam.Action) => {
       return userGroups.indexOf(group) > -1
     })
     this.loggers.debug({ group }, logctx)
 
     if (!group) {
-      throw new HttpException('Permission', HttpStatus.UNAUTHORIZED)
+      throw new HttpException('Unauthorized Role', HttpStatus.UNAUTHORIZED)
     }
 
     return true
+  }
+
+  isBackOfficeUser(userGroups: string[]) {
+    if (userGroups?.length > 0) {
+      const group = uam.AnyAdminScope.find(s => {
+        return userGroups.indexOf(s) > -1
+      })
+      return !!group
+    }
+    return false
   }
 }
