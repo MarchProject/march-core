@@ -34,7 +34,7 @@ export const statusCode = {
       data: null,
       status: {
         code: 9003,
-        message: `Bad Request: ${message}`
+        message: message
       }
     }
   },

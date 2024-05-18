@@ -67,6 +67,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
     const request = this.getRequest(context)
 
     const authorizationHeader = getRequestHeader(request, 'Authorization')
+    const lang = getRequestHeader(request, 'lang')
 
     this.loggers.debug({ authorizationHeader }, logctx)
 
@@ -118,6 +119,7 @@ export class UserAuthGuard extends AuthGuard('jwt') {
         request.shopsId = jwtVerifyResult.shopsId
         request.userName = jwtVerifyResult.userName
         request.taskServices = jwtVerifyResult.info.tasks
+        request.lang = lang
         return true
       }
     } catch (error) {
