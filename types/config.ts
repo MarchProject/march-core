@@ -18,5 +18,6 @@ export namespace config {
     auth?: ServiceConfig
     inventory?: ServiceConfig
     user?: ServiceConfig
+    finance?: ServiceConfig
   }
 }
