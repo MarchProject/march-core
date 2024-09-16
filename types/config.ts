@@ -19,5 +19,6 @@ export namespace config {
     inventory?: ServiceConfig
     user?: ServiceConfig
     finance?: ServiceConfig
+    customer?: ServiceConfig
   }
 }
